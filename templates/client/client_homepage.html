@@ -161,6 +161,37 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="profile-section">
+                    <h2>Manage Projects</h2>
+                    <div class="projects-grid">
+                        {% if projects %}
+                            {% for project in projects %}
+                                <div class="project-card">
+                                    <h3>{{ project.title }}</h3>
+                                    <p>{{ project.description|truncatechars:100 }}</p>
+                                    <div class="project-info">
+                                        <span class="status {{ project.status }}">{{ project.status|title }}</span>
+                                        <span class="budget">${{ project.budget }}</span>
+                                    </div>
+                                    <div class="project-actions">
+                                        <a href="{% url 'project_card' project.id %}" class="btn-custom">View Details</a>
+                                        <span class="bid-count">
+                                            {{ project.bids.count }} bid{{ project.bids.count|pluralize }}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="project-card empty">
+                                <h3>No active projects</h3>
+                                <p>Start by posting your first project!</p>
+                                <a href="{% url 'client-create-project' %}" class="btn-custom">Post Project</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -227,3 +258,57 @@
     {% endif %}
 </body>
 </html>
+
+<style>
+    .project-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+
+    .project-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .project-info {
+        display: flex;
+        justify-content: space-between;
+        margin: 15px 0;
+    }
+
+    .status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+
+    .status.open { background: #e3f2fd; color: #1565c0; }
+    .status.in_progress { background: #fff3e0; color: #ef6c00; }
+    .status.completed { background: #e8f5e9; color: #2e7d32; }
+    .status.closed { background: #efebe9; color: #6d4c41; }
+
+    .project-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .bid-count {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .project-card.empty {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px 0;
+    }
+</style>

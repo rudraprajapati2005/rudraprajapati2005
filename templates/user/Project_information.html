@@ -205,6 +205,91 @@
                 transform: translateY(0);
             }
         }
+        .freelancer-avatar{
+           height: 17vh;
+           width : 17vh;
+           border-radius: 50%;
+           border : 5px solid rgb(13, 61, 30);
+        }
+        .bid-content-wrapper {
+            display: flex;
+            gap: 20px;
+        }
+
+        .freelancer-photo-section {
+            flex: 0 0 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 15px;
+            border-right: 1px solid #eee;
+        }
+
+        .freelancer-avatar,
+        .freelancer-avatar-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .freelancer-avatar-placeholder {
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: #ccd0d5;
+        }
+
+        .freelancer-name {
+            font-size: 1.2em;
+            margin: 10px 0 5px;
+            color: #2c3e50;
+        }
+
+        .bid-time {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .bid-details-section {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .bid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .bid-amount {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .bid-content {
+            line-height: 1.6;
+        }
+
+        .proposal-text {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .delivery-time {
+            color: #666;
+            margin-bottom: 15px;
+        }
     </style>
     <!-- Add this to ensure CSRF token is available via JavaScript -->
     <script>
@@ -367,57 +452,114 @@
                 </div>
             </div>
             <div class="tab2-project-proposals">
-                {% if bids %}
-                    {% for bid in bids %}
-                    <div class="proposal">
-                        <div class="proposal-header">
-                            <div class="bidder-info">
-                                {% if bid.profile_pic %}
-                                    <img src="{{ bid.profile_pic }}" alt="{{ bid.freelancer_name }}" class="bidder-avatar">
-                                {% else %}
-                                    <div class="bidder-avatar-placeholder">
-                                        <i class="fas fa-user"></i>
+                <div class="bids-section">
+                    <h2>Proposals ({{ bids|length }})</h2>
+                    {% if bids %}
+                        {% for bid in bids %}
+                            <div class="bid-card {% if bid.status == 'accepted' %}accepted{% elif bid.status == 'rejected' %}rejected{% endif %}">
+                                <div class="bid-content-wrapper">
+                                    <!-- Freelancer Photo Section -->
+                                    <div class="freelancer-photo-section">
+                                        {% if bid.profile_pic %}
+                                            <img src="{{ bid.profile_pic }}" alt="Freelancer" class="freelancer-avatar">
+                                        {% else %}
+                                            <div class="freelancer-avatar-placeholder">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                        <h3 class="freelancer-name">{{ bid.freelancer_name }}</h3>
+                                        <span class="bid-time">{{ bid.submitted_time|timesince }} ago</span>
                                     </div>
-                                {% endif %}
-                                <div class="bidder-details">
-                                    <h3 class="bidder-name">{{ bid.freelancer_name }}</h3>
-                                    <span class="bidder-username">@{{ bid.freelancer_username }}</span>
+
+                                    <!-- Bid Details Section -->
+                                    <div class="bid-details-section">
+                                        <div class="bid-header">
+                                            <div class="bid-amount">${{ bid.amount }}</div>
+                                            {% if project.is_owner %}
+                                                <div class="bid-status">
+                                                    Status: <span class="status-badge {{ bid.status }}">{{ bid.status|title }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="bid-content">
+                                            <div class="proposal-text">{{ bid.proposal_text }}</div>
+                                            <div class="delivery-time">Delivery Time: {{ bid.delivery_time }} days</div>
+                                            
+                                            {% if project.can_manage_bids and bid.status == 'pending' and project.is_owner %}
+                                                <div class="bid-actions">
+                                                    <form action="{% url 'accept-bid' bid.bid_id %}" method="POST" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="accept-btn">Accept Proposal</button>
+                                                    </form>
+                                                    <form action="{% url 'reject-bid' bid.bid_id %}" method="POST" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="reject-btn">Reject</button>
+                                                    </form>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <span class="bid-amount">${{ bid.amount }} USD</span>
-                        </div>
-                        <div class="bid-details">
-                            <p ><strong>Delivery Time:</strong> {{ bid.delivery_time }} days</p>
-                            <p class="proposal-description">{{ bid.proposal_text }}</p>
-                            {% if bid.technical_approach %}
-                                <div class="technical-approach">
-                                    <h4>Technical Approach</h4>
-                                    <p>{{ bid.technical_approach }}</p>
-                                </div>
-                            {% endif %}
-                            {% if bid.milestone_breakdown %}
-                                <div class="milestones">
-                                    <h4>Milestones</h4>
-                                    <p>{{ bid.milestone_breakdown }}</p>
-                                </div>
-                            {% endif %}
-                            {% if bid.attachments %}
-                                <div class="attachments">
-                                    <a href="{{ bid.attachments.url }}" target="_blank">
-                                        <i class="fas fa-paperclip"></i> View Attachment
-                                    </a>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <span class="proposal-time">Submitted: {{ bid.submitted_time|timesince }} ago</span>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="no-proposals">
-                        <i class="fas fa-folder-open"></i>
-                        <p>No bids have been submitted yet</p>
-                    </div>
-                {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-bids">No proposals yet</p>
+                    {% endif %}
+                </div>
+
+                <style>
+                    .bid-card {
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        margin-bottom: 1rem;
+                        padding: 1rem;
+                    }
+                    
+                    .bid-card.accepted {
+                        border-color: #28a745;
+                        background-color: #f8fff8;
+                    }
+                    
+                    .bid-card.rejected {
+                        border-color: #dc3545;
+                        background-color: #fff8f8;
+                        opacity: 0.7;
+                    }
+                    
+                    .status-badge {
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 4px;
+                        font-size: 0.875rem;
+                    }
+                    
+                    .status-badge.pending { background: #ffd700; }
+                    .status-badge.accepted { background: #28a745; color: white; }
+                    .status-badge.rejected { background: #dc3545; color: white; }
+                    
+                    .bid-actions {
+                        margin-top: 1rem;
+                        display: flex;
+                        gap: 1rem;
+                    }
+                    
+                    .accept-btn, .reject-btn {
+                        padding: 0.5rem 1rem;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    }
+                    
+                    .accept-btn {
+                        background: #28a745;
+                        color: white;
+                    }
+                    
+                    .reject-btn {
+                        background: #dc3545;
+                        color: white;
+                    }
+                </style>
             </div>
          </div>
          {% include 'user/footer.html'%}

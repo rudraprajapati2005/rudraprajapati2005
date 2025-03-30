@@ -115,7 +115,13 @@
                             <div class="freelancer-info">
                                 <h2>{{ freelancer.name }}</h2>
                                 <p><strong>Expertise:</strong> {{ freelancer.skills }}</p>
-                                <p class="hourly-rate"><strong>Hourly Rate:</strong> ${{ freelancer.hourly_rate|default:"Negotiable" }}/hr</p>
+                                <p class="hourly-rate"><strong>Hourly Rate:</strong> 
+                                    {% if freelancer.hourly_rate %}
+                                        ${{ freelancer.hourly_rate }}/hr
+                                    {% else %}
+                                        Negotiable
+                                    {% endif %}
+                                </p>
                                 <button class="hire-btn">Hire Me</button>
                             </div>
                         </a>

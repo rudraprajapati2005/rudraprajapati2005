@@ -146,6 +146,7 @@ def client_login(request):
             hashed_password = hash_password(password)
             user = Users.objects.get(username=username, password=hashed_password, user_type='client')
             client = Client.objects.get(user=user)
+            projects = Project.objects.filter(posted_by=client).order_by('-created_at')
             client_dict = model_to_dict(client)
             client_dict.update(model_to_dict(user))
             # Check if image exists before accessing url
@@ -154,7 +155,11 @@ def client_login(request):
             else:
                 client_dict['profile_pic'] = None
             settings.USER = client_dict
-            return render(request, 'client/client_homepage.html', {'client': client_dict})
+            context = {
+                'client': client_dict,
+                'projects': projects
+            }
+            return render(request, 'client/client_homepage.html', context)
         except (Users.DoesNotExist, Client.DoesNotExist):
             pass
 
@@ -167,6 +172,7 @@ def client_login(request):
                 hashed_password = hash_password(password)
                 if user.password == hashed_password:
                     client = Client.objects.get(user=user)
+                    projects = Project.objects.filter(posted_by=client).order_by('-created_at')
                     request.session['user_type'] = user.user_type
                     request.session['username'] = user.username
                     request.session['name'] = user.name
@@ -179,7 +185,11 @@ def client_login(request):
                         client_dict['profile_pic'] = client.image.url
                     else:
                         client_dict['profile_pic'] = None
-                    return render(request, 'client/client_homepage.html', {'client': client_dict})
+                    context = {
+                        'client': client_dict,
+                        'projects': projects
+                    }
+                    return render(request, 'client/client_homepage.html', context)
                 else:
                     error = {'error_password': 'Password is incorrect'}
                     return render(request, 'client/client_login.html', {'error': error})
@@ -193,8 +203,32 @@ def client_login(request):
     return render(request, 'client/client_login.html')
 
 def client_home_page(request):
-    return redirect('client-login-page')
-    return render(request,'client/client_homepage.html')
+    username = request.session.get('username')
+    if not username:
+        return redirect('client-login-page')
+        
+    try:
+        user = Users.objects.get(username=username, user_type='client')
+        client = Client.objects.get(user=user)
+        
+        # Get all projects for this client and order by most recent
+        projects = Project.objects.filter(posted_by=client).order_by('-created_at')
+        
+        client_dict = model_to_dict(client)
+        client_dict.update(model_to_dict(user))
+        
+        if client.image:
+            client_dict['profile_pic'] = client.image.url
+            
+        context = {
+            'client': client_dict,
+            'projects': projects
+        }
+        
+        return render(request, 'client/client_homepage.html', context)
+        
+    except (Users.DoesNotExist, Client.DoesNotExist):
+        return redirect('client-login-page')
 
 def client_add_project(request):
     return render(request,"client/add_project_client.html")
@@ -542,6 +576,10 @@ def freelancer_login(request):
                 if about_freelancer.image:
                     about_data['profile_pic'] = about_freelancer.image.url
                 
+                # Convert Decimal fields to float
+                if 'hourly_rate' in about_data and about_data['hourly_rate'] is not None:
+                    about_data['hourly_rate'] = float(about_data['hourly_rate'])
+                
                 # Update freelancer dictionary with about data
                 freelancer_dict.update(about_data)
                 
@@ -556,6 +594,7 @@ def freelancer_login(request):
                 freelancer_dict['gitLinks'] = None
                 freelancer_dict['links'] = None
                 freelancer_dict['experience'] = None
+                freelancer_dict['hourly_rate'] = None
 
             # Set session data
             request.session['freelancer'] = user.username
@@ -605,51 +644,68 @@ def save_description(request):
         try:
             user = Users.objects.get(username=username, user_type='freelancer')
             freelancer = Freelancer.objects.get(user=user)
+            about_freelancer = AboutFreelancer.objects.get_or_create(
+                username=username,
+                freelancer=freelancer
+            )[0]
             
-            if field_type == 'skills':
-                # Update freelancer skills directly
-                freelancer.skills = description
-                freelancer.save()
-                
-                # Get about_freelancer data
-                about_freelancer = AboutFreelancer.objects.filter(username=username).first()
-                if about_freelancer:
-                    about_freelancer_dict = model_to_dict(about_freelancer, exclude=['image'])
-                    if about_freelancer.image and hasattr(about_freelancer.image, 'url'):
-                        about_freelancer_dict['profile_pic'] = about_freelancer.image.url
+            if field_type == 'rate':
+                try:
+                    hourly_rate = float(description)
+                    if hourly_rate < 0 or hourly_rate > 1000:
+                        messages.error(request, "Hourly rate must be between $0 and $1000")
+                        return redirect('freelancer-home')
                     
-                    # Combine freelancer and about_freelancer data
-                    freelancer_data = model_to_dict(freelancer)
-                    about_freelancer_dict.update(freelancer_data)
-                    return render(request, 'freelancer/freelancer_homepage.html', {'freelancer': about_freelancer_dict})
-            else:
-                # Handle other fields (about, git, links)
-                about_freelancer = AboutFreelancer.objects.filter(username=username).first()
-                if about_freelancer:
-                    if field_type == 'about':
-                        about_freelancer.about_freelancer = description
-                    elif field_type == 'git':
-                        about_freelancer.gitLinks = description
-                    elif field_type == 'links':
-                        about_freelancer.links = description
-                    
+                    about_freelancer.hourly_rate = hourly_rate
                     about_freelancer.save()
                     
-                    about_freelancer_dict = model_to_dict(about_freelancer, exclude=['image'])
-                    if about_freelancer.image and hasattr(about_freelancer.image, 'url'):
-                        about_freelancer_dict['profile_pic'] = about_freelancer.image.url
-                    
-                    freelancer_data = model_to_dict(freelancer)
-                    about_freelancer_dict.update(freelancer_data)
-                    
-                    return render(request, 'freelancer/freelancer_homepage.html', {'freelancer': about_freelancer_dict})
+                except ValueError:
+                    messages.error(request, "Please enter a valid hourly rate")
+                    return redirect('freelancer-home')
+            elif field_type == 'skills':
+                freelancer.skills = description
+                freelancer.save()
+            else:
+                # Handle other fields
+                if field_type == 'about':
+                    about_freelancer.about_freelancer = description
+                elif field_type == 'git':
+                    about_freelancer.gitLinks = description
+                elif field_type == 'links':
+                    about_freelancer.links = description
+                about_freelancer.save()
             
-            return render(request, "freelancer/freelancer_homepage.html", {'freelancer': {'username': username}})
+            # Prepare response data
+            freelancer_data = model_to_dict(freelancer)
+            freelancer_data.update({
+                'name': user.name,
+                'email': user.email,
+                'username': user.username,
+                'phone': user.phone
+            })
+            
+            about_data = model_to_dict(about_freelancer, exclude=['image'])
+            if about_data.get('hourly_rate'):
+                about_data['hourly_rate'] = float(about_data['hourly_rate'])
+            
+            if about_freelancer.image:
+                about_data['profile_pic'] = about_freelancer.image.url
+            
+            freelancer_data.update(about_data)
+            request.session['my_freelancer_dic'] = freelancer_data
+            
+            messages.success(request, f"{field_type.title()} updated successfully!")
+            return render(request, 'freelancer/freelancer_homepage.html', {'freelancer': freelancer_data})
             
         except (Users.DoesNotExist, Freelancer.DoesNotExist):
+            messages.error(request, "User or freelancer profile not found")
             return redirect('freelancer-login-page')
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('freelancer-home')
 
-    return HttpResponse("OOPS! Something went wrong.")
+    return HttpResponse("Method not allowed", status=405)
+
 def create_project(request):
     if request.method == 'POST':
         try:
@@ -703,31 +759,31 @@ def browse_projects(request):
     projects = Project.objects.all().order_by('-created_at')
     return render(request, 'user/Browse_projects.html', {'projects': projects})
 def view_freelancers(request):
-    # Get all freelancers with their related user data
     freelancers = Freelancer.objects.select_related('user').all()
     
     freelancer_list = []
     for fr in freelancers:
         freelancer_dict = {
-            'username': fr.user.username,  # Get username from User model
-            'name': fr.user.name,         # Get name from User model
+            'username': fr.user.username,
+            'name': fr.user.name,
             'skills': fr.skills.replace('_', ' ') if fr.skills else '',
-            'profile_pic': None
+            'profile_pic': None,
+            'hourly_rate': None
         }
         
-        # Get profile picture if exists
         try:
             about_freelancer = AboutFreelancer.objects.get(username=fr.user.username)
             if about_freelancer.image and hasattr(about_freelancer.image, 'url'):
                 freelancer_dict['profile_pic'] = about_freelancer.image.url
+            freelancer_dict['hourly_rate'] = about_freelancer.hourly_rate
         except AboutFreelancer.DoesNotExist:
             pass
             
         freelancer_list.append(freelancer_dict)
-        
+    
     return render(request, 'user/Freelancers.html', {
         'freelancers': freelancer_list,
-        'user_type': request.session.get('user_type')  # Add user_type to context
+        'user_type': request.session.get('user_type')
     })
 
 def freelancer_home(request):
@@ -736,14 +792,12 @@ def freelancer_home(request):
         return redirect('freelancer-login-page')
     
     try:
-        # Get the user object first
+        # Get user and freelancer objects
         user = Users.objects.get(username=username, user_type='freelancer')
-        
-        # Get the freelancer profile
         freelancer = Freelancer.objects.get(user=user)
-        freelancer_data = model_to_dict(freelancer)
         
-        # Add user data to freelancer data
+        # Prepare base freelancer data
+        freelancer_data = model_to_dict(freelancer)
         freelancer_data.update({
             'name': user.name,
             'email': user.email,
@@ -751,20 +805,23 @@ def freelancer_home(request):
             'phone': user.phone
         })
         
-        # Try to get about freelancer data
+        # Get or create AboutFreelancer data
         try:
             about_freelancer = AboutFreelancer.objects.get(username=username)
             about_data = model_to_dict(about_freelancer, exclude=['image'])
             
+            # Convert Decimal to float for JSON serialization
+            if about_data.get('hourly_rate'):
+                about_data['hourly_rate'] = float(about_data['hourly_rate'])
+            
             # Add profile picture if exists
             if about_freelancer.image:
                 about_data['profile_pic'] = about_freelancer.image.url
-            
+                
             # Update freelancer data with about data
             freelancer_data.update(about_data)
             
         except AboutFreelancer.DoesNotExist:
-            # If no about data exists, create it
             about_freelancer = AboutFreelancer.objects.create(
                 username=username,
                 freelancer=freelancer
@@ -822,7 +879,6 @@ def save_client_details(request):
                 client.businessEmail = updated_value
                 
             client.save()
-            
             client_dict = model_to_dict(client)
             client_dict.update({
                 'name': user.name,
@@ -835,7 +891,6 @@ def save_client_details(request):
             
         except (Users.DoesNotExist, Client.DoesNotExist):
             return redirect('client-login-page')
-
     return HttpResponse("Something went wrong.")
 
 def upload_profile_client(request):
@@ -854,7 +909,6 @@ def upload_profile_client(request):
                 
                 client.image = image
                 client.save()
-                
                 client_dict = model_to_dict(client)
                 client_dict.update({
                     'name': user.name,
@@ -862,10 +916,9 @@ def upload_profile_client(request):
                     'username': user.username,
                     'phone': user.phone
                 })
-                
                 if client.image:
                     client_dict['profile_pic'] = client.image.url
-                
+                    
                 return render(request, 'client/client_homepage.html', {'client': client_dict})
                 
             except (Users.DoesNotExist, Client.DoesNotExist):
@@ -879,7 +932,6 @@ def client_my_projects(request):
         user = Users.objects.get(username=username, user_type='client')
         client = Client.objects.get(user=user)
         projects = Project.objects.filter(posted_by=client).order_by('-created_at')
-        
         client_dict = model_to_dict(client)
         client_dict.update(model_to_dict(user))
         if client.image:
@@ -890,6 +942,7 @@ def client_my_projects(request):
             'projects': projects
         }
         return render(request, 'client/client_myprojects.html', context)
+        
     except (Users.DoesNotExist, Client.DoesNotExist):
         return redirect('client-login-page')
 
@@ -898,7 +951,6 @@ def project_card(request, project_id):
     # Get CSRF token
     csrf_token = get_token(request)
     project = get_object_or_404(Project, id=project_id)
-    
     # Get the full project model data
     project_dict = model_to_dict(project)
     project_dict['skills'] = [s.replace('_', ' ') for s in project.skills_required.split(",")]
@@ -909,7 +961,6 @@ def project_card(request, project_id):
     client_user_info = model_to_dict(client_info_model.user)
     project_dict.update(client_user_info)
     project_dict.update(client_info_dict)
-    
     print(f"Project ID from database: {project.id}")  # Debug print
     
     # Get all bids for this project with freelancer info
@@ -927,16 +978,24 @@ def project_card(request, project_id):
             if about_freelancer.image and hasattr(about_freelancer.image, 'url'):
                 bid_dict['profile_pic'] = about_freelancer.image.url
         except AboutFreelancer.DoesNotExist:
-            bid_dict['profile_pic'] = None
+            bid_dict['profile_pic'] = None    
             
         # Format the time properly
         bid_dict['submitted_time'] = bid.created_at
         bid_list.append(bid_dict)
         
     print("Bid list:", bid_list) 
-    print("Project ID:", project_id) 
+    print("Project ID:", project_id)  # Debug print
     project_dict['id']=project_id # Debug print
     print("project dict" , project_dict) # Debug print to see the data
+
+    project_dict['is_owner'] = request.session.get('username') == project.posted_by.user.username
+    project_dict['can_manage_bids'] = project_dict['is_owner'] and project.status == 'open'
+    
+    # Update bid list with status information
+    for bid in bid_list:
+        bid['can_manage'] = project_dict['can_manage_bids']
+
     return render(request, "user/Project_information.html", {
         'project': project_dict,
         'csrf_token': csrf_token,
@@ -958,15 +1017,13 @@ from django.views.decorators.csrf import csrf_protect
 def submit_bid(request, project_id):
     if request.method == 'POST':
         print("Received bid submission") # Debug log
-        
         if not request.session.get('user_type') == 'freelancer':
             messages.error(request, 'Please login as a freelancer to submit a bid')
             return redirect('freelancer-login-page')
             
         try:
             username = request.session.get('username')
-            print(f"User submitting bid: {username}") # Debug log
-            
+            print(f"User submitting bid: {username}") # Debug log            
             user = Users.objects.get(username=username, user_type='freelancer')
             freelancer = Freelancer.objects.get(user=user)
             project = Project.objects.get(id=project_id)
@@ -991,13 +1048,13 @@ def submit_bid(request, project_id):
             if 'attachments' in request.FILES:
                 bid.attachments = request.FILES['attachments']
                 bid.save()
-
+            
             print(f"Bid created successfully: {bid.bid_id}") # Debug log
             messages.success(request, f'Your bid of ${bid.amount} has been submitted successfully!')
             
         except Exception as e:
             print(f"Error submitting bid: {str(e)}") # Debug log
-            messages.error(request, f'An error occurred: {str(e)}')
+            messages.error(request, f'An error occurred: {str(e)}')            
             
         return redirect('project_card', project_id=project_id)
 
@@ -1005,20 +1062,18 @@ def submit_bid(request, project_id):
 
 def view_freelancer_profile(request, username):
     try:
-        # Get the user and freelancer objects
         user = Users.objects.get(username=username, user_type='freelancer')
         freelancer = Freelancer.objects.get(user=user)
         
-        # Create base freelancer dictionary
         freelancer_data = {
             'username': user.username,
             'name': user.name,
             'email': user.email,
             'skills': freelancer.skills,
-            'id': freelancer.id
+            'id': freelancer.id,
+            'hourly_rate': None
         }
         
-        # Get about freelancer data if exists
         try:
             about_freelancer = AboutFreelancer.objects.get(username=username)
             if about_freelancer.image:
@@ -1026,14 +1081,12 @@ def view_freelancer_profile(request, username):
             freelancer_data['about_freelancer'] = about_freelancer.about_freelancer
             freelancer_data['gitLinks'] = about_freelancer.gitLinks
             freelancer_data['links'] = about_freelancer.links
+            freelancer_data['hourly_rate'] = about_freelancer.hourly_rate
         except AboutFreelancer.DoesNotExist:
             pass
         
-        # Get reviews with related data
         reviews = Review.objects.filter(freelancer=freelancer).select_related('client__user', 'project').order_by('-created_at')
         freelancer_data['reviews_received'] = reviews
-        
-        # Calculate average rating
         avg_rating = reviews.aggregate(models.Avg('rating'))['rating__avg']
         freelancer_data['average_rating'] = round(avg_rating, 1) if avg_rating else 0
         
@@ -1056,8 +1109,6 @@ def submit_review(request, freelancer_id):
         try:
             freelancer = Freelancer.objects.get(id=freelancer_id)
             client = Client.objects.get(user__username=request.session.get('username'))
-            
-            # Check review limit for non-project reviews
             review_count = Review.objects.filter(
                 client=client,
                 freelancer=freelancer,
@@ -1068,10 +1119,8 @@ def submit_review(request, freelancer_id):
                 messages.error(request, 'You have already submitted the maximum number of reviews (5) for this freelancer.')
                 return redirect('view_freelancer_profile', username=freelancer.user.username)
             
-            # Create review
             rating = int(request.POST.get('rating'))
             comment = request.POST.get('comment')
-            
             review = Review.objects.create(
                 client=client,
                 freelancer=freelancer,
@@ -1079,7 +1128,6 @@ def submit_review(request, freelancer_id):
                 comment=comment,
                 project=None
             )
-            
             messages.success(request, 'Review submitted successfully!')
             
         except ValidationError as e:
@@ -1087,7 +1135,7 @@ def submit_review(request, freelancer_id):
         except Exception as e:
             messages.error(request, f'Error submitting review: {str(e)}')
             print(f"Review submission error: {str(e)}")
-            
+            return redirect('view_freelancer_profile', username=freelancer.user.username)
         return redirect('view_freelancer_profile', username=freelancer.user.username)
     return redirect('view_freelancer_profile', username=freelancer.user.username)
 
@@ -1095,8 +1143,6 @@ def view_reviews(request, username):
     try:
         freelancer = Freelancer.objects.get(user__username=username)
         reviews = Review.objects.filter(freelancer=freelancer).select_related('client__user', 'project').order_by('-created_at')
-        
-        # Calculate average rating
         avg_rating = reviews.aggregate(models.Avg('rating'))['rating__avg'] or 0
         
         context = {
@@ -1105,9 +1151,62 @@ def view_reviews(request, username):
             'avg_rating': round(avg_rating, 1),
             'review_count': reviews.count()
         }
-        
         return render(request, 'user/view_reviews.html', context)
         
     except Freelancer.DoesNotExist:
         messages.error(request, 'Freelancer not found')
         return redirect('home')
+
+@csrf_protect
+def accept_bid(request, bid_id):
+    if request.method == 'POST':
+        try:
+            # Get the bid and related project
+            bid = get_object_or_404(Bid, bid_id=bid_id)
+            project = bid.project
+            
+            # Verify the logged-in user is the project owner
+            if request.session.get('username') != project.posted_by.user.username:
+                messages.error(request, 'Unauthorized action.')
+                return redirect('project_card', project_id=project.id)
+            
+            # Update project status
+            project.status = 'in_progress'
+            project.save()
+            
+            # Accept this bid and reject all others
+            Bid.objects.filter(project=project).exclude(bid_id=bid_id).update(status='rejected')
+            bid.status = 'accepted'
+            bid.save()
+            
+            messages.success(request, f'Bid accepted successfully. Project is now in progress.')
+            
+        except Exception as e:
+            messages.error(request, f'Error accepting bid: {str(e)}')
+        
+        return redirect('project_card', project_id=project.id)
+    return HttpResponse("Method not allowed", status=405)
+
+@csrf_protect
+def reject_bid(request, bid_id):
+    if request.method == 'POST':
+        try:
+            bid = get_object_or_404(Bid, bid_id=bid_id)
+            project = bid.project
+            
+            # Verify the logged-in user is the project owner
+            if request.session.get('username') != project.posted_by.user.username:
+                messages.error(request, 'Unauthorized action.')
+                return redirect('project_card', project_id=project.id)
+            
+            # Reject the bid
+            bid.status = 'rejected'
+            bid.save()
+            
+            messages.success(request, 'Bid rejected successfully.')
+            
+        except Exception as e:
+            messages.error(request, f'Error rejecting bid: {str(e)}')
+        
+        return redirect('project_card', project_id=project.id)
+    return HttpResponse("Method not allowed", status=405)

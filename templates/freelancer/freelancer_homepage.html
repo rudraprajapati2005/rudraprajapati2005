@@ -24,6 +24,69 @@
         .logout a:hover {
             background-color: #ffebee;
         }
+
+        /* Hourly Rate Section Styles */
+        .rate-content input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .rate-content input[type="number"]:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        .rate-content input[type="number"]::placeholder {
+            color: #999;
+        }
+
+        .rate-text {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .rate-text p {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #28a745;
+        }
+
+        .rate-text .edit-icon {
+            color: #6c757d;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .rate-text .edit-icon:hover {
+            color: #007bff;
+        }
+
+        .invalid-rate {
+            border-color: #dc3545 !important;
+        }
+
+        .rate-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .add-description[data-field="rate"]:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -193,6 +256,36 @@
                 </div>
 
                 <div class="profile-section">
+                    <h2>Hourly Rate</h2>
+                    <div class="rate-content editable-section">
+                        {% if freelancer.hourly_rate %}
+                            <div class="rate-text">
+                                <p>${{ freelancer.hourly_rate }}/hr</p>
+                                <i class="fas fa-edit edit-icon" data-field="rate" title="Edit hourly rate"></i>
+                            </div>
+                        {% else %}
+                            <p class="add-description" data-field="rate">
+                                Click to add your hourly rate
+                            </p>
+                        {% endif %}
+                        <div id="rate-form" class="edit-form" style="display: none;">
+                            <form action="{% url 'save-description' %}" method="POST">
+                                {% csrf_token %}
+                                <input type="text" name="username" value="{{ freelancer.username }}" hidden>
+                                <input type="text" name="field_type" value="rate" hidden>
+                                <input type="number" name="description" min="0" step="0.01" 
+                                    value="{{ freelancer.hourly_rate|default:'' }}" 
+                                    placeholder="Enter your hourly rate (USD)">
+                                <div class="form-buttons">
+                                    <button type="submit" class="save-btn">Save</button>
+                                    <button type="button" class="cancel-btn">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
                     <h2>Services Offered</h2>
                     <div class="services-list">
                         <div class="service-item">
@@ -263,6 +356,32 @@
     </div>
 
     <script>
+        // Define allSkills array in the global scope
+        const allSkills = [
+            { value: "web_development", text: "Web Development" },
+            { value: "graphic_design", text: "Graphic Design" },
+            { value: "content_writing", text: "Content Writing" },
+            { value: "digital_marketing", text: "Digital Marketing" },
+            { value: "data_entry", text: "Data Entry" },
+            { value: "video_editing", text: "Video Editing" },
+            { value: "mobile_app_development", text: "Mobile App Development" },
+            { value: "seo", text: "SEO" },
+            { value: "copywriting", text: "Copywriting" },
+            { value: "translation", text: "Translation" },
+            { value: "social_media_management", text: "Social Media Management" },
+            { value: "photography", text: "Photography" },
+            { value: "virtual_assistance", text: "Virtual Assistance" },
+            { value: "software_development", text: "Software Development" },
+            { value: "ui_ux_design", text: "UI/UX Design" },
+            { value: "project_management", text: "Project Management" },
+            { value: "illustration", text: "Illustration" },
+            { value: "music_production", text: "Music Production" },
+            { value: "3d_modeling", text: "3D Modeling" },
+            { value: "email_marketing", text: "Email Marketing" },
+            { value: "copy_editing", text: "Copy Editing" },
+            { value: "resume_writing", text: "Resume Writing" }
+        ];
+
         document.addEventListener("DOMContentLoaded", function() {
             function submitFormOnFileSelect() {
                 console.log('submitting form');
@@ -378,37 +497,80 @@
                 return true;
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                const allSkills = [
-                    { value: "web_development", text: "Web Development" },
-                    { value: "graphic_design", text: "Graphic Design" },
-                    { value: "content_writing", text: "Content Writing" },
-                    { value: "digital_marketing", text: "Digital Marketing" },
-                    { value: "data_entry", text: "Data Entry" },
-                    { value: "video_editing", text: "Video Editing" },
-                    { value: "mobile_app_development", text: "Mobile App Development" },
-                    { value: "seo", text: "SEO" },
-                    { value: "copywriting", text: "Copywriting" },
-                    { value: "translation", text: "Translation" },
-                    { value: "social_media_management", text: "Social Media Management" },
-                    { value: "photography", text: "Photography" },
-                    { value: "virtual_assistance", text: "Virtual Assistance" },
-                    { value: "software_development", text: "Software Development" },
-                    { value: "ui_ux_design", text: "UI/UX Design" },
-                    { value: "project_management", text: "Project Management" },
-                    { value: "illustration", text: "Illustration" },
-                    { value: "music_production", text: "Music Production" },
-                    { value: "3d_modeling", text: "3D Modeling" },
-                    { value: "email_marketing", text: "Email Marketing" },
-                    { value: "copy_editing", text: "Copy Editing" },
-                    { value: "resume_writing", text: "Resume Writing" }
-                ];
-
+            function initializeSkillsSearch() {
                 const searchInput = document.getElementById('searchSkills');
                 const skillsList = document.getElementById('skillsList');
                 const selectedSkillsContainer = document.getElementById('selectedSkills');
                 const hiddenInput = document.getElementById('selected_Skills');
                 let selectedSkills = [];
+
+                if (!searchInput || !skillsList || !selectedSkillsContainer || !hiddenInput) {
+                    console.error('Required elements not found');
+                    return;
+                }
+
+                // Style the skills list
+                skillsList.style.cssText = `
+                    display: none;
+                    position: absolute;
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    width: 100%;
+                    z-index: 1000;
+                    margin-top: 5px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                `;
+
+                // Initialize selected skills from existing data
+                if ("{{freelancer.skills}}") {
+                    const skills = "{{freelancer.skills}}".split(',').map(skill => skill.trim());
+                    skills.forEach(skillValue => {
+                        const skill = allSkills.find(s => s.value === skillValue);
+                        if (skill) {
+                            addSkill(skill);
+                        }
+                    });
+                }
+
+                // Search input handler
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase().trim();
+                    skillsList.innerHTML = '';
+
+                    if (query === '') {
+                        skillsList.style.display = 'none';
+                        return;
+                    }
+
+                    const filteredSkills = allSkills.filter(skill => 
+                        skill.text.toLowerCase().includes(query) && 
+                        !selectedSkills.some(s => s.value === skill.value)
+                    );
+
+                    if (filteredSkills.length > 0) {
+                        skillsList.style.display = 'block';
+                        filteredSkills.forEach(skill => {
+                            const li = document.createElement('li');
+                            li.textContent = skill.text;
+                            li.style.cssText = `
+                                padding: 8px 12px;
+                                cursor: pointer;
+                                hover: background-color: #f5f5f5;
+                            `;
+                            li.addEventListener('click', () => {
+                                addSkill(skill);
+                                searchInput.value = '';
+                                skillsList.style.display = 'none';
+                            });
+                            skillsList.appendChild(li);
+                        });
+                    } else {
+                        skillsList.style.display = 'none';
+                    }
+                });
 
                 function addSkill(skill) {
                     if (!selectedSkills.some(s => s.value === skill.value)) {
@@ -425,56 +587,104 @@
                 function updateSelectedSkills() {
                     selectedSkillsContainer.innerHTML = '';
                     selectedSkills.forEach(skill => {
-                        const skillTag = document.createElement('span');
-                        skillTag.className = 'skill-tag';
-                        skillTag.textContent = skill.text + ' ×';
-                        skillTag.addEventListener('click', function() {
-                            removeSkill(skill);
-                        });
-                        selectedSkillsContainer.appendChild(skillTag);
+                        const span = document.createElement('span');
+                        span.className = 'skill-tag';
+                        span.textContent = skill.text + ' ×';
+                        span.addEventListener('click', () => removeSkill(skill));
+                        selectedSkillsContainer.appendChild(span);
                     });
-                    hiddenInput.value = selectedSkills.map(skill => skill.value).join(',');
+                    hiddenInput.value = selectedSkills.map(s => s.value).join(',');
                 }
+            }
 
-                // Initialize selected skills from existing data
-                const preSelectedSkills = "{{freelancer.skills}}";
-                if (preSelectedSkills) {
-                    const skills = preSelectedSkills.split(',').map(skill => skill.trim());
-                    skills.forEach(skillValue => {
-                        const skill = allSkills.find(s => s.value === skillValue);
-                        if (skill) {
-                            addSkill(skill);
+            // Initialize skills search when the skills edit form is shown
+            const editIcon = document.querySelector('[data-field="skills"]');
+            const addDescription = document.querySelector('.add-description[data-field="skills"]');
+            
+            if (editIcon) {
+                editIcon.addEventListener('click', () => setTimeout(initializeSkillsSearch, 100));
+            }
+            if (addDescription) {
+                addDescription.addEventListener('click', () => setTimeout(initializeSkillsSearch, 100));
+            }
+
+            // Add this to your existing DOMContentLoaded event listener
+            function initializeRateValidation() {
+                const rateInput = document.querySelector('input[name="description"][type="number"]');
+                const rateForm = document.querySelector('#rate-form form');
+                
+                if (rateInput && rateForm) {
+                    // Add error message element
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'rate-error';
+                    rateInput.parentNode.insertBefore(errorDiv, rateInput.nextSibling);
+
+                    rateInput.addEventListener('input', function() {
+                        const value = parseFloat(this.value);
+                        if (value < 0) {
+                            this.classList.add('invalid-rate');
+                            errorDiv.textContent = 'Hourly rate cannot be negative';
+                            errorDiv.style.display = 'block';
+                        } else if (value > 1000) {
+                            this.classList.add('invalid-rate');
+                            errorDiv.textContent = 'Hourly rate cannot exceed $1000';
+                            errorDiv.style.display = 'block';
+                        } else {
+                            this.classList.remove('invalid-rate');
+                            errorDiv.style.display = 'none';
+                        }
+                    });
+
+                    rateForm.addEventListener('submit', function(e) {
+                        const value = parseFloat(rateInput.value);
+                        if (value < 0 || value > 1000 || isNaN(value)) {
+                            e.preventDefault();
+                            rateInput.classList.add('invalid-rate');
+                            errorDiv.textContent = 'Please enter a valid hourly rate between $0 and $1000';
+                            errorDiv.style.display = 'block';
+                        }
+                    });
+
+                    // Format the input to always show 2 decimal places
+                    rateInput.addEventListener('blur', function() {
+                        if (this.value && !isNaN(this.value)) {
+                            this.value = parseFloat(this.value).toFixed(2);
                         }
                     });
                 }
+            }
 
-                searchInput.addEventListener('input', function() {
-                    const query = this.value.toLowerCase().trim();
-                    skillsList.innerHTML = '';
-
-                    if (query === '') {
-                        return;
-                    }
-
-                    const filteredSkills = allSkills.filter(skill => 
-                        skill.text.toLowerCase().includes(query) && 
-                        !selectedSkills.some(s => s.value === skill.value)
-                    );
-
-                    filteredSkills.forEach(skill => {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = skill.text;
-                        listItem.style.cursor = 'pointer';
-                        listItem.addEventListener('click', function() {
-                            addSkill(skill);
-                            searchInput.value = '';
-                            skillsList.innerHTML = '';
-                        });
-                        skillsList.appendChild(listItem);
-                    });
-                });
-            });
+            // Initialize rate validation when edit form is shown
+            const rateEditIcon = document.querySelector('[data-field="rate"]');
+            const addRateBtn = document.querySelector('.add-description[data-field="rate"]');
+            
+            if (rateEditIcon) {
+                rateEditIcon.addEventListener('click', () => setTimeout(initializeRateValidation, 100));
+            }
+            if (addRateBtn) {
+                addRateBtn.addEventListener('click', () => setTimeout(initializeRateValidation, 100));
+            }
         });
+
+        function showSkillsForm() {
+            const skillsForm = document.getElementById('skills-form');
+            if (skillsForm) {
+                skillsForm.style.display = 'block';
+                initializeSkillsSearch();
+            }
+        }
+
+        // Initialize when edit icon is clicked
+        const editSkillsIcon = document.querySelector('[data-field="skills"]');
+        if (editSkillsIcon) {
+            editSkillsIcon.addEventListener('click', showSkillsForm);
+        }
+
+        // Initialize when "Add Skills" is clicked
+        const addSkillsBtn = document.querySelector('.add-description[data-field="skills"]');
+        if (addSkillsBtn) {
+            addSkillsBtn.addEventListener('click', showSkillsForm);
+        }
     </script>
 
     {% endif %}

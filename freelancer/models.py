@@ -27,8 +27,9 @@ class AboutFreelancer(models.Model):
     gitLinks = models.TextField(null=True, blank=True)
     links = models.TextField(null=True, blank=True)
     experience = models.TextField(null=True, blank=True)
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     freelancer = models.ForeignKey(Freelancer, on_delete=models.CASCADE, related_name='about_freelancer', null=True, blank=True)
-
+    
     def __str__(self):
         return f"{self.freelancer.user.username}'s Profile"
 
