@@ -1,0 +1,281 @@
+ 
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5vh auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .navlinks ul li a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .navlinks ul li a:hover {
+            color: #007bff;
+        }
+
+        /* Style for logout link */
+        .navlinks ul li a[href$="logout"] {
+            color: #dc3545;
+        }
+
+        .navlinks ul li a[href$="logout"]:hover {
+            color: #c82333;
+        }
+        
+        .proposal {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #eee;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .proposal:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .proposal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        .bidder-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bidder-avatar, .bidder-avatar-placeholder {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .bidder-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bidder-name {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .bidder-username {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .bid-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #27ae60;
+            background: #e8f5e9;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .bid-details {
+            color: #34495e;
+            line-height: 1.6;
+        }
+
+        .technical-approach, .milestones {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .technical-approach h4, .milestones h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .attachments {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .attachments a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #3498db;
+            text-decoration: none;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .attachments a:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .proposal-time {
+            display: block;
+            margin-top: 15px;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+
+        .no-proposals {
+            text-align: center;
+            padding: 50px 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            color: #7f8c8d;
+        }
+
+        .no-proposals i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-30px);
+            }
+            60% {
+                transform: translateY(-15px);
+            }
+        }
+
+        /* Animation for new bids */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .freelancer-avatar{
+           height: 17vh;
+           width : 17vh;
+           border-radius: 50%;
+           border : 5px solid rgb(13, 61, 30);
+        }
+        .bid-content-wrapper {
+            display: flex;
+            gap: 20px;
+        }
+
+        .freelancer-photo-section {
+            flex: 0 0 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 15px;
+            border-right: 1px solid #eee;
+        }
+
+        .freelancer-avatar,
+        .freelancer-avatar-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .freelancer-avatar-placeholder {
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: #ccd0d5;
+        }
+
+        .freelancer-name {
+            font-size: 1.2em;
+            margin: 10px 0 5px;
+            color: #2c3e50;
+        }
+
+        .bid-time {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .bid-details-section {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .bid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .bid-amount {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .bid-content {
+            line-height: 1.6;
+        }
+
+        .proposal-text {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .delivery-time {
+            color: #666;
+            margin-bottom: 15px;
+        } 

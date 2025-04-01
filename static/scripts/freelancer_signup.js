@@ -1,27 +1,6 @@
-const allSkills = [
-    { value: "web_development", text: "Web Development" },
-    { value: "graphic_design", text: "Graphic Design" },
-    { value: "content_writing", text: "Content Writing" },
-    { value: "digital_marketing", text: "Digital Marketing" },
-    { value: "data_entry", text: "Data Entry" },
-    { value: "video_editing", text: "Video Editing" },
-    { value: "mobile_app_development", text: "Mobile App Development" },
-    { value: "seo", text: "SEO" },
-    { value: "copywriting", text: "Copywriting" },
-    { value: "translation", text: "Translation" },
-    { value: "social_media_management", text: "Social Media Management" },
-    { value: "AboutFreelancergraphy", text: "AboutFreelancergraphy" },
-    { value: "virtual_assistance", text: "Virtual Assistance" },
-    { value: "software_development", text: "Software Development" },
-    { value: "ui_ux_design", text: "UI/UX Design" },
-    { value: "project_management", text: "Project Management" },
-    { value: "illustration", text: "Illustration" },
-    { value: "music_production", text: "Music Production" },
-    { value: "3d_modeling", text: "3D Modeling" },
-    { value: "email_marketing", text: "Email Marketing" },
-    { value: "copy_editing", text: "Copy Editing" },
-    { value: "resume_writing", text: "Resume Writing" }
-];
+import { allskills } from "./skills.js"
+ 
+let allSkills = allskills;
 
 const searchInput = document.getElementById('searchSkills');
 const skillsList = document.getElementById('skillsList');
@@ -93,3 +72,5 @@ function updateSelectedSkills() {
     // Update the hidden input field's value
     hiddenInput.value = selectedSkills.map(skill => skill.value).join(',');
 }
+
+ 

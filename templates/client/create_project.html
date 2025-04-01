@@ -1,9 +1,7 @@
-{% extends 'base_client.html' %}
+ 
 
 {% load static %}
-
-{% block title %}Create Project{% endblock %}
-
+ 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/create_project.css' %}">
@@ -11,28 +9,12 @@
 
 {% block content %}
 <div class="page-wrapper">
-    <!-- <nav class="top-nav">
-        <div class="nav-brand">Freelancer</div>
-        <div class="nav-links">
-            <a href="#" class="nav-link"><i class="fas fa-home"></i> Home</a>
-            <a href="#" class="nav-link active"><i class="fas fa-plus-circle"></i> Create Project</a>
-            <a href="#" class="nav-link"><i class="fas fa-user"></i> Profile</a>
-        </div>
-    </nav> -->
 
     <div class="create-project-container">
         <div class="form-header">
             <h1><i class="fas fa-project-diagram"></i> Create New Project</h1>
             <p>Fill in the details below to post your project</p>
-            {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+            
             {% if form.errors %}
             <div class="form-errors">
                 {% for field, errors in form.errors.items %}
@@ -149,99 +131,8 @@
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
-<script src="{% static 'scripts/create_project.js' %}"></script>
-<script>
-const allSkills = [
-    { value: "web_development", text: "Web Development" },
-    { value: "graphic_design", text: "Graphic Design" },
-    { value: "content_writing", text: "Content Writing" },
-    { value: "digital_marketing", text: "Digital Marketing" },
-    { value: "data_entry", text: "Data Entry" },
-    { value: "video_editing", text: "Video Editing" },
-    { value: "mobile_app_development", text: "Mobile App Development" },
-    { value: "seo", text: "SEO" },
-    { value: "copywriting", text: "Copywriting" },
-    { value: "translation", text: "Translation" },
-    { value: "social_media_management", text: "Social Media Management" },
-    { value: "photography", text: "Photography" },
-    { value: "virtual_assistance", text: "Virtual Assistance" },
-    { value: "software_development", text: "Software Development" },
-    { value: "ui_ux_design", text: "UI/UX Design" },
-    { value: "project_management", text: "Project Management" }
-];
-
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchProjectSkills');
-    const skillsList = document.getElementById('skillsList');
-    const selectedSkillsContainer = document.getElementById('selectedSkills');
-    const hiddenInput = document.getElementById('selected_Skills');
-    let selectedSkills = [];
-
-    function addSkill(skill) {
-        if (!selectedSkills.some(s => s.value === skill.value)) {
-            selectedSkills.push(skill);
-            updateSelectedSkills();
-        }
-        searchInput.value = '';
-        skillsList.innerHTML = '';
-    }
-
-    function removeSkill(skill) {
-        selectedSkills = selectedSkills.filter(s => s.value !== skill.value);
-        updateSelectedSkills();
-    }
-
-    function updateSelectedSkills() {
-        selectedSkillsContainer.innerHTML = '';
-        selectedSkills.forEach(skill => {
-            const skillTag = document.createElement('span');
-            skillTag.className = 'skill-tag';
-            skillTag.textContent = skill.text + ' ×';
-            skillTag.addEventListener('click', () => removeSkill(skill));
-            selectedSkillsContainer.appendChild(skillTag);
-        });
-        hiddenInput.value = selectedSkills.map(skill => skill.value).join(',');
-    }
-
-    searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        skillsList.innerHTML = '';
-        
-        if (query === '') {
-            skillsList.style.display = 'none';
-            return;
-        }
-
-        const filteredSkills = allSkills.filter(skill => 
-            skill.text.toLowerCase().includes(query) && 
-            !selectedSkills.some(s => s.value === skill.value)
-        );
-
-        if (filteredSkills.length > 0) {
-            skillsList.style.display = 'block';
-            filteredSkills.forEach(skill => {
-                const li = document.createElement('li');
-                li.textContent = skill.text;
-                li.addEventListener('click', () => {
-                    addSkill(skill);
-                    skillsList.style.display = 'none';
-                });
-                skillsList.appendChild(li);
-            });
-        } else {
-            skillsList.style.display = 'none';
-        }
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.skills-input-container')) {
-            skillsList.style.display = 'none';
-        }
-    });
-});
-</script>
-{% endblock %}
+<script type="module" src="{% static 'scripts/create-project-skills.js' %}"></script>
+<script type="module" src="{% static 'scripts/create_project.js' %}"></script>
+ 
 </body>
 </html>

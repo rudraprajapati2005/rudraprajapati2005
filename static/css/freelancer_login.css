@@ -1,0 +1,63 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+                to bottom right, 
+                rgb(246, 246, 131) 0%,
+                rgba(238, 238, 157, 0.2) 40%
+              );
+    height: 100vh; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 80vh; 
+    height: 80vh;  
+    background: url("AboutFreelancers/bg-img/Freelancerlogowithaperson.png") no-repeat center;
+    background-size: contain;  
+    opacity: 1;  
+    z-index: -1;
+}
+
+.error-message {
+    color: #ff0000;
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+}
+
+.messages {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.messages li {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.messages .error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.messages .success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+    

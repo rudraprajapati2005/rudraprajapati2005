@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/Home.css' %}">
     <link rel="stylesheet" href="{% static 'css/styles-profile-page.css' %}">
     <link rel="stylesheet" href="{% static 'css/client-dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/client-profile.css' %}">
 </head>
 <body>
     {% if client.username %}
@@ -103,7 +104,7 @@
                     <div class="profile-section">
                         <h2>Quick Actions</h2>
                         <div class="quick-links">
-                            <a href="{% url 'client-add-project' %}" class="action-link">
+                            <a href="{% url 'client-create-project' %}" class="action-link">
                                 <i class="fas fa-plus-circle"></i> Post New Project
                             </a>
                             <a href="{% url 'view_freelancers' %}" class="action-link">
@@ -195,120 +196,13 @@
             </div>
         </div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <!-- ...existing footer code... -->
-        </footer>
+        {% include 'user/footer.html'%}
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const editableSections = document.querySelectorAll('.editable-section');
-
-            editableSections.forEach(section => {
-                const editIcons = section.querySelectorAll('.edit-icon');
-                
-                editIcons.forEach(icon => {
-                    const fieldType = icon.dataset.field;
-                    const form = document.getElementById(`${fieldType}-form`);
-                    const textElement = icon.parentElement;
-                    const cancelBtn = form.querySelector('.cancel-btn');
-
-                    icon.addEventListener('click', () => {
-                        form.style.display = 'block';
-                        textElement.style.display = 'none';
-                    });
-
-                    cancelBtn.addEventListener('click', () => {
-                        form.style.display = 'none';
-                        textElement.style.display = 'flex';
-                    });
-                });
-            });
-        });
-
-        document.addEventListener("DOMContentLoaded", function() {
-            function submitFormOnFileSelect() {
-                var form = document.getElementById('uploadForm');
-                if (form) {
-                    form.submit();
-                }
-            }
-
-            var fileInput = document.getElementById('UploadfileInput');
-            if (fileInput) {
-                fileInput.addEventListener('change', submitFormOnFileSelect);
-            }
-
-            // For update form
-            function submitUpdateFormOnFileSelect() {
-                var form = document.getElementById('updateProfileForm');
-                if (form) {
-                    form.submit();
-                }
-            }
-
-            var updateFileInput = document.getElementById('updateFileInput');
-            if (updateFileInput) {
-                updateFileInput.addEventListener('change', submitUpdateFormOnFileSelect);
-            }
-        });
-    </script>
+    <script src="{% static 'scripts/client_profile.js' %}"> </script>
 
     {% endif %}
 </body>
 </html>
 
-<style>
-    .project-card {
-        background: #fff;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
-    }
-
-    .project-card:hover {
-        transform: translateY(-2px);
-    }
-
-    .project-info {
-        display: flex;
-        justify-content: space-between;
-        margin: 15px 0;
-    }
-
-    .status {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.9em;
-    }
-
-    .status.open { background: #e3f2fd; color: #1565c0; }
-    .status.in_progress { background: #fff3e0; color: #ef6c00; }
-    .status.completed { background: #e8f5e9; color: #2e7d32; }
-    .status.closed { background: #efebe9; color: #6d4c41; }
-
-    .project-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .bid-count {
-        color: #666;
-        font-size: 0.9em;
-    }
-
-    .project-card.empty {
-        text-align: center;
-        padding: 40px 20px;
-    }
-
-    .projects-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
-        padding: 20px 0;
-    }
-</style>
+ 

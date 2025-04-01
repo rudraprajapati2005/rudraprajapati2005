@@ -9,8 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const applyFiltersBtn = document.getElementById("apply-filters");
     const freelancerSearchInput = document.getElementById("freelancer-search");
 
-    console.log(allSkills);
-
     // Filter skills dynamically as user types
     skillSearchInput.addEventListener("input", function () {
         const query = skillSearchInput.value.toLowerCase();
@@ -62,10 +60,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to filter freelancers based on selected skills
     function filterFreelancers() {
-        const freelancerCards = document.querySelectorAll(".freelancer-card"); // Re-fetch elements
+        const freelancerCards = document.querySelectorAll(".freelancer-card");
         freelancerCards.forEach(card => {
-            const skillsText = card.querySelector(".expertise").textContent.toLowerCase();
-            const hasAllSkills = selectedSkills.every(skill => skillsText.includes(skill.toLowerCase()));
+            const skillsText = card.querySelector(".freelancer-info p").textContent.toLowerCase(); 
+            const freelancerSkills = skillsText.split(',').map(skill => skill.trim().toLowerCase()); // Handle comma-separated skills
+            const hasAllSkills = selectedSkills.every(skill => freelancerSkills.includes(skill.toLowerCase())); // Check all selected skills
 
             if (selectedSkills.length === 0 || hasAllSkills) {
                 card.style.display = "block";
@@ -81,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Search freelancers by name
     freelancerSearchInput.addEventListener("input", function () {
         const query = freelancerSearchInput.value.toLowerCase();
-        const freelancerCards = document.querySelectorAll(".freelancer-card"); // Re-fetch elements
+        const freelancerCards = document.querySelectorAll(".freelancer-card");
         freelancerCards.forEach(card => {
             const title = card.querySelector("h2").textContent.toLowerCase();
             if (title.includes(query)) {

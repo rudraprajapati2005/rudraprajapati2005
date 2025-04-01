@@ -1,3 +1,6 @@
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
     // Form elements animation
     const formElements = document.querySelectorAll('input, textarea, select');
@@ -20,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showError(this);
         });
     });
-
+    
     // Add date validation
     const deadlineInput = document.querySelector('input[type="date"]');
     if (deadlineInput) {
@@ -60,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function validateForm() {
     const requiredFields = document.querySelectorAll('[required]');
     let isValid = true;
-
+    
     requiredFields.forEach(field => {
         if (!field.value.trim()) {
             showError(field);

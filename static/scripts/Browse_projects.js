@@ -1,93 +1,77 @@
-import  { allSkills } from './skills.js';
-
-let selectedSkills = []; // Store selected skills
-
 document.addEventListener("DOMContentLoaded", function () {
-    const skillSearchInput = document.getElementById("skill-search");
-    const skillList = document.getElementById("skill-list");
-    const selectedSkillsContainer = document.getElementById("selected-skills");
-    const applyFiltersBtn = document.getElementById("apply-filters");
     const projectSearchInput = document.getElementById("project-search");
     const projectCards = document.querySelectorAll(".project-card");
-    console.log(allSkills)
-    // Dummy list of skills (In real scenario, fetch from backend)
-    
-    // Filter skills dynamically as user types
-    skillSearchInput.addEventListener("input", function () {
-        const query = skillSearchInput.value.toLowerCase();
-        skillList.innerHTML = ""; // Clear previous list
 
-        if (query) {
-            const filteredSkills = allSkills.filter(skill => skill.toLowerCase().includes(query));
-            filteredSkills.forEach(skill => {
-                const li = document.createElement("li");
-                li.textContent = skill;
-                li.addEventListener("click", function () {
-                    addSkill(skill);
-                });
-                skillList.appendChild(li);
-            });
-        }
-    });
-
-    // Function to add a selected skill
-    function addSkill(skill) {
-        if (!selectedSkills.includes(skill)) {
-            selectedSkills.push(skill);
-            updateSelectedSkills();
-        }
-        skillSearchInput.value = ""; // Clear input after selection
-        skillList.innerHTML = ""; // Clear suggestion list
-    }
-
-    // Function to remove skill and update projects dynamically
-    function removeSkill(skill) {
-        selectedSkills = selectedSkills.filter(s => s !== skill);
-        updateSelectedSkills();
-        filterProjects(); // Reapply filtering
-    }
-
-    // Function to update selected skills display
-    function updateSelectedSkills() {
-        selectedSkillsContainer.innerHTML = "";
-        selectedSkills.forEach(skill => {
-            const skillTag = document.createElement("span");
-            skillTag.classList.add("skill-tag");
-            skillTag.textContent = skill;
-            skillTag.addEventListener("click", function () {
-                removeSkill(skill);
-            });
-            selectedSkillsContainer.appendChild(skillTag);
-        });
-    }
-
-    // Function to filter projects based on selected skills
-    function filterProjects() {
-        projectCards.forEach(card => {
-            const skillsText = card.querySelector(".skills").textContent.toLowerCase();
-            const hasAllSkills = selectedSkills.every(skill => skillsText.includes(skill.toLowerCase()));
-
-            if (selectedSkills.length === 0 || hasAllSkills) {
-                card.style.display = "block";
-            } else {
-                card.style.display = "none";
-            }
-        });
-    }
-
-    // Apply filters when button is clicked
-    applyFiltersBtn.addEventListener("click", filterProjects);
-
-    // Search projects by name
     projectSearchInput.addEventListener("input", function () {
-        const query = projectSearchInput.value.toLowerCase();
+        const query = this.value.toLowerCase();
+        let hasResults = false;
+
         projectCards.forEach(card => {
             const title = card.querySelector("h2").textContent.toLowerCase();
-            if (title.includes(query)) {
-                card.style.display = "block";
+            const skillTags = Array.from(card.querySelectorAll(".skill-tag"))
+                .map(tag => tag.textContent.toLowerCase());
+            const status = card.querySelector(".status").textContent.toLowerCase();
+            
+            const matches = title.includes(query) || 
+                          skillTags.some(skill => skill.includes(query)) ||
+                          status.includes(query);
+            
+            if (matches) {
+                card.style.display = "flex";
+                hasResults = true;
             } else {
                 card.style.display = "none";
             }
         });
+
+        updateSearchResults(hasResults, query);
     });
+
+    // Function to update search results UI
+    function updateSearchResults(hasResults, query) {
+        let noResultsMsg = document.querySelector(".no-results");
+        const projectList = document.querySelector(".project-list");
+
+        if (!hasResults && query) {
+            if (!noResultsMsg) {
+                noResultsMsg = document.createElement("div");
+                noResultsMsg.className = "no-results";
+                noResultsMsg.innerHTML = `
+                    <i class="fas fa-search"></i>
+                    <p>No projects found matching "${query}"</p>
+                    <p>Try searching with different keywords</p>
+                `;
+                projectList.appendChild(noResultsMsg);
+            }
+        } else if (noResultsMsg) {
+            noResultsMsg.remove();
+        }
+    }
 });
+
+// Modify animation styles to prevent interference
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+    .no-results {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin: 2rem auto;
+    }
+
+    .no-results i {
+        font-size: 2.5rem;
+        color: rgb(1, 87, 87);
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .no-results p {
+        color: #666;
+        margin: 0.5rem 0;
+    }
+`;
+document.head.appendChild(styleSheet);
